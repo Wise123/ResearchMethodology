@@ -1,23 +1,18 @@
-import pandas as pd
 from sklearn.cross_validation import KFold
 from sklearn import cross_validation
-from sklearn import linear_model
 from sklearn.linear_model import LogisticRegression
-import numpy as np
+import pandas as pd
+url = "https://goo.gl/eGVE1I"
 
-#trainData = pd.read_csv("../dataSets/unimel_train2.csv") # считываем файл с данными для обучения
-testData = pd.read_csv("../dataSets/unimel_test2.csv") # считываем файл с данными для тестирования
-#print(testData)
-#x = testData[:][0:8]
-x = pd.DataFrame(testData,  columns=['Grant.Application.ID', 'Grant.Status',  'Number.of.Successful.Grant.1', 'Number.of.Unsuccessful.Grant.1'])
-x = x[::][200:220]
-y = testData['Grant.Status'][220]
-print(x)
-cv = KFold(len(x), n_folds=5, shuffle=True, random_state=241) # задаем генератор разбиений
-model = LogisticRegression() # объявляем регрессию
-scoring = 'roc_auc' # объявляем метрику качества
-results = cross_validation.cross_val_score(model, x, y, cv=cv, scoring=scoring) #делаем кросс-валидацию на основе генерации и регрессии
-
-#print(trainData)
-
-#print(y)
+array = pd.read_csv(url).values
+X = array[:,0:8]
+Y = array[:,8]
+results = cross_validation.cross_val_score(LogisticRegression(), X, Y, cv=KFold(len(X), n_folds=5, shuffle=True, random_state=241), scoring='roc_auc')
+for i, C in enumerate((0.001, 0.01, 0.1, 1.0, 10.0, 100.0)):
+        clf_l1_LR = LogisticRegression(C=C, penalty='l1')
+        clf_l1_LR.fit(X, Y)
+        coef_l1_LR = clf_l1_LR.coef_
+        print("C=%.3f" % C)
+        print("score with L1 penalty: %.4f" % clf_l1_LR.score(X, Y))
+clf_l1_LR = LogisticRegression(C=0.01, penalty='l1')
+results1 = cross_validation.cross_val_score(clf_l1_LR, X, Y, cv=KFold(len(X), n_folds=5, shuffle=True, random_state=241), scoring='roc_auc')
